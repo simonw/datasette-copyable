@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Copy as {{ table_format }}{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex">
+<style type="text/css">
+textarea.copyable {
+    width: 80%;
+    height: 30em;
+}
+</style>
+{% endblock %}
+
+{% block nav %}
+    <p class="crumbs">
+        <a href="{{ base_url }}">home</a> /
+        <a href="{{ base_url }}{{ database }}">{{ database }}</a>{% if table %} /
+        <a href="{{ base_url }}{{ database }}/{{ table|quote_plus }}">{{ table }}</a>{% endif %}
+    </p>
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+<h1>Copy as {{ table_format }}</h1>
+
+<p>Formats: {% for format in table_formats %}
+    <a href="{{ format.link }}">{{ format.name }}</a>{% if not loop.last %} &middot; {% endif %}
+{% endfor %}</p>
+
+<div>
+<textarea class="copyable">{{ copyable }}</textarea>
+<p><a href="{{ raw_link }}">Just this data</a></p>
+</div>
+
+{% endblock %}
