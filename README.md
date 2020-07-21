@@ -12,6 +12,10 @@ Install this plugin in the same environment as Datasette.
 
     $ pip install datasette-copyable
 
+## Demo
+
+You can try this plugin on [fivethirtyeight.datasettes.com](https://fivethirtyeight.datasettes.com/) - browse for tables or queries there and look for the "copyable" link. Here's an example for a table of [airline safety data](https://fivethirtyeight.datasettes.com/fivethirtyeight/airline-safety%2Fairline-safety.copyable).
+
 ## Usage
 
 This plugin adds a `.copyable` output extension to every table, view and query.
