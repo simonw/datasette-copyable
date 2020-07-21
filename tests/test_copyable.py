@@ -37,19 +37,50 @@ async def test_plugin_adds_copyable_extension(ds):
 
 
 @pytest.mark.asyncio
-async def test_copyable_page(ds):
+async def test_copyable_page_tsv(ds):
     async with httpx.AsyncClient(app=ds.app()) as client:
         response = await client.get("http://localhost/test/dogs.copyable")
         assert 200 == response.status_code
+        assert "<h1>Copy as tsv</h1>" in response.text
         assert (
-            '<textarea class="copyable">1	Cleo    	5	51.2\n2	Pancakes	4	35.5</textarea>'
+            '<textarea class="copyable">id\tname\tage\tweight\r\n1\tCleo\t5\t51.2\r\n2\tPancakes\t4\t35.5\r\n</textarea>'
             in response.text
         )
 
 
 @pytest.mark.asyncio
-async def test_raw_page(ds):
+async def test_raw_page_tsv(ds):
     async with httpx.AsyncClient(app=ds.app()) as client:
         response = await client.get("http://localhost/test/dogs.copyable?_raw=1")
         assert 200 == response.status_code
-        assert "1	Cleo    	5	51.2\n2	Pancakes	4	35.5" == response.text
+        assert (
+            "id\tname\tage\tweight\r\n1\tCleo\t5\t51.2\r\n2\tPancakes\t4\t35.5\r\n"
+            == response.text
+        )
+
+
+@pytest.mark.asyncio
+async def test_copyable_page_github(ds):
+    async with httpx.AsyncClient(app=ds.app()) as client:
+        response = await client.get(
+            "http://localhost/test/dogs.copyable?_table_format=github"
+        )
+        assert 200 == response.status_code
+        assert "<h1>Copy as github</h1>" in response.text
+        assert (
+            '<textarea class="copyable">|   id | name     |   age |   weight |\n|------|----------|-------|----------|\n|    1 | Cleo     |     5 |     51.2 |\n|    2 | Pancakes |     4 |     35.5 |</textarea>'
+            in response.text
+        )
+
+
+@pytest.mark.asyncio
+async def test_raw_page_github(ds):
+    async with httpx.AsyncClient(app=ds.app()) as client:
+        response = await client.get(
+            "http://localhost/test/dogs.copyable?_table_format=github&_raw=1"
+        )
+        assert 200 == response.status_code
+        assert (
+            "|   id | name     |   age |   weight |\n|------|----------|-------|----------|\n|    1 | Cleo     |     5 |     51.2 |\n|    2 | Pancakes |     4 |     35.5 |"
+            == response.text
+        )
