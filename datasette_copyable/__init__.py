@@ -1,5 +1,6 @@
 from datasette import hookimpl
 from datasette.utils import path_with_replaced_args
+from datasette.utils.asgi import Response
 import csv
 import io
 import tabulate
@@ -27,8 +28,8 @@ async def render_copyable(
     if raw:
         return {"body": copyable, "content_type": "text/plain; charset=utf-8"}
 
-    return {
-        "body": await datasette.render_template(
+    return Response(
+        await datasette.render_template(
             "copyable.html",
             {
                 "database": database,
@@ -48,8 +49,8 @@ async def render_copyable(
             },
             request=request,
         ),
-        "content_type": "text/html; charset=utf-8",
-    }
+        content_type="text/html; charset=utf-8"
+    )
 
 
 @hookimpl

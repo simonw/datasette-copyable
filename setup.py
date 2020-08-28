@@ -27,7 +27,7 @@ setup(
     version=VERSION,
     packages=["datasette_copyable"],
     entry_points={"datasette": ["copyable = datasette_copyable"]},
-    install_requires=["datasette", "tabulate"],
+    install_requires=["datasette>=0.49a0", "tabulate"],
     extras_require={"test": ["pytest", "pytest-asyncio", "httpx", "sqlite-utils"]},
     tests_require=["datasette-copyable[test]"],
     package_data={"datasette_copyable": ["templates/*.html"]},
