@@ -49,7 +49,7 @@ async def render_copyable(
             },
             request=request,
         ),
-        content_type="text/html; charset=utf-8"
+        content_type="text/html; charset=utf-8",
     )
 
 
