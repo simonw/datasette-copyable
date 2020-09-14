@@ -1,7 +1,7 @@
 from setuptools import setup
 import os
 
-VERSION = "0.2"
+VERSION = "0.3"
 
 
 def get_long_description():
@@ -28,7 +28,7 @@ setup(
     version=VERSION,
     packages=["datasette_copyable"],
     entry_points={"datasette": ["copyable = datasette_copyable"]},
-    install_requires=["datasette>=0.49a0", "tabulate"],
+    install_requires=["datasette>=0.49", "tabulate"],
     extras_require={"test": ["pytest", "pytest-asyncio", "httpx", "sqlite-utils"]},
     tests_require=["datasette-copyable[test]"],
     package_data={"datasette_copyable": ["templates/*.html"]},
