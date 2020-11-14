@@ -12,6 +12,18 @@ async def render_copyable(
     table_format = request.args.get("_table_format")
     raw = request.args.get("_raw")
 
+    # Look for {"value": "label":} dicts and turn them into just label
+    new_rows = []
+    for row in rows:
+        new_row = []
+        for cell in row:
+            if isinstance(cell, dict):
+                new_row.append(cell["label"])
+            else:
+                new_row.append(cell)
+        new_rows.append(new_row)
+    rows = new_rows
+
     if table_format not in tabulate.tabulate_formats:
         table_format = "tsv"
 

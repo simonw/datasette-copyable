@@ -9,12 +9,14 @@ def ds(tmp_path_factory):
     db_directory = tmp_path_factory.mktemp("dbs")
     db_path = db_directory / "test.db"
     db = sqlite_utils.Database(db_path)
+    db["species"].insert({"id": 1, "name": "Dog"}, pk="id")
     db["dogs"].insert_all(
         [
-            {"id": 1, "name": "Cleo", "age": 5, "weight": 51.2},
-            {"id": 2, "name": "Pancakes", "age": 4, "weight": 35.5},
+            {"id": 1, "name": "Cleo", "age": 5, "weight": 51.2, "species": 1},
+            {"id": 2, "name": "Pancakes", "age": 4, "weight": 35.5, "species": 1},
         ],
         pk="id",
+        foreign_keys=("species",),
     )
     return Datasette([db_path])
 
@@ -43,9 +45,11 @@ async def test_copyable_page_tsv(ds):
         assert 200 == response.status_code
         assert "<h1>Copy as tsv</h1>" in response.text
         assert (
-            '<textarea class="copyable">id\tname\tage\tweight\r\n1\tCleo\t5\t51.2\r\n2\tPancakes\t4\t35.5\r\n</textarea>'
-            in response.text
-        )
+            '<textarea class="copyable">id\tname\tage\tweight\tspecies\r\n'
+            "1\tCleo\t5\t51.2\t1\r\n"
+            "2\tPancakes\t4\t35.5\t1"
+            "\r\n</textarea>"
+        ) in response.text
 
 
 @pytest.mark.asyncio
@@ -54,9 +58,10 @@ async def test_raw_page_tsv(ds):
         response = await client.get("http://localhost/test/dogs.copyable?_raw=1")
         assert 200 == response.status_code
         assert (
-            "id\tname\tage\tweight\r\n1\tCleo\t5\t51.2\r\n2\tPancakes\t4\t35.5\r\n"
-            == response.text
-        )
+            "id\tname\tage\tweight\tspecies\r\n"
+            "1\tCleo\t5\t51.2\t1\r\n"
+            "2\tPancakes\t4\t35.5\t1\r\n"
+        ) == response.text
 
 
 @pytest.mark.asyncio
@@ -68,9 +73,12 @@ async def test_copyable_page_github(ds):
         assert 200 == response.status_code
         assert "<h1>Copy as github</h1>" in response.text
         assert (
-            '<textarea class="copyable">|   id | name     |   age |   weight |\n|------|----------|-------|----------|\n|    1 | Cleo     |     5 |     51.2 |\n|    2 | Pancakes |     4 |     35.5 |</textarea>'
-            in response.text
-        )
+            '<textarea class="copyable">'
+            "|   id | name     |   age |   weight |   species |\n"
+            "|------|----------|-------|----------|-----------|\n"
+            "|    1 | Cleo     |     5 |     51.2 |         1 |\n"
+            "|    2 | Pancakes |     4 |     35.5 |         1 |</textarea>"
+        ) in response.text
 
 
 @pytest.mark.asyncio
@@ -81,6 +89,39 @@ async def test_raw_page_github(ds):
         )
         assert 200 == response.status_code
         assert (
-            "|   id | name     |   age |   weight |\n|------|----------|-------|----------|\n|    1 | Cleo     |     5 |     51.2 |\n|    2 | Pancakes |     4 |     35.5 |"
-            == response.text
+            "|   id | name     |   age |   weight |   species |\n"
+            "|------|----------|-------|----------|-----------|\n"
+            "|    1 | Cleo     |     5 |     51.2 |         1 |\n"
+            "|    2 | Pancakes |     4 |     35.5 |         1 |"
+        ) == response.text
+
+
+@pytest.mark.asyncio
+async def test_raw_page_tsv_with_labels(ds):
+    async with httpx.AsyncClient(app=ds.app()) as client:
+        response = await client.get(
+            "http://localhost/test/dogs.copyable?_labels=on&_raw=1"
         )
+        assert 200 == response.status_code
+        assert (
+            "id\tname\tage\tweight\tspecies\r\n"
+            "1\tCleo\t5\t51.2\tDog\r\n"
+            "2\tPancakes\t4\t35.5\tDog\r\n"
+        ) == response.text
+
+
+@pytest.mark.asyncio
+async def test_copyable_page_github_with_labels(ds):
+    async with httpx.AsyncClient(app=ds.app()) as client:
+        response = await client.get(
+            "http://localhost/test/dogs.copyable?_table_format=github&_labels=on"
+        )
+        assert 200 == response.status_code
+        assert "<h1>Copy as github</h1>" in response.text
+        assert (
+            '<textarea class="copyable">'
+            "|   id | name     |   age |   weight | species   |\n"
+            "|------|----------|-------|----------|-----------|\n"
+            "|    1 | Cleo     |     5 |     51.2 | Dog       |\n"
+            "|    2 | Pancakes |     4 |     35.5 | Dog       |</textarea>"
+        ) in response.text
