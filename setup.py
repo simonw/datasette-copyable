@@ -32,4 +32,5 @@ setup(
     extras_require={"test": ["pytest", "pytest-asyncio", "httpx", "sqlite-utils"]},
     tests_require=["datasette-copyable[test]"],
     package_data={"datasette_copyable": ["templates/*.html"]},
+    python_requires=">=3.7",
 )

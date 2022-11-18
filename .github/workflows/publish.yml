@@ -4,16 +4,44 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: read
+
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Configure pip caching
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install dependencies
+      run: |
+        pip install -e '.[test]'
+    - name: Run tests
+      run: |
+        pytest
   deploy:
     runs-on: ubuntu-latest
+    needs: [test]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.8'
-    - uses: actions/cache@v2
+        python-version: "3.11"
+    - uses: actions/cache@v3
       name: Configure pip caching
       with:
         path: ~/.cache/pip
@@ -22,16 +50,12 @@ jobs:
           ${{ runner.os }}-publish-pip-
     - name: Install dependencies
       run: |
-        pip install -e '.[test]'
-        pip install setuptools wheel twine
-    - name: Run tests
-      run: pytest
+        pip install setuptools wheel twine build
     - name: Publish
-      if: success()
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
-        python setup.py sdist bdist_wheel
+        python -m build
         twine upload dist/*
 
