@@ -1,6 +1,5 @@
 from datasette.app import Datasette
 import pytest
-import httpx
 import sqlite_utils
 
 
@@ -23,105 +22,91 @@ def ds(tmp_path_factory):
 
 @pytest.mark.asyncio
 async def test_plugin_is_installed(ds):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.get("http://localhost/-/plugins.json")
-        assert 200 == response.status_code
-        installed_plugins = {p["name"] for p in response.json()}
-        assert "datasette-copyable" in installed_plugins
+    response = await ds.client.get("/-/plugins.json")
+    assert 200 == response.status_code
+    installed_plugins = {p["name"] for p in response.json()}
+    assert "datasette-copyable" in installed_plugins
 
 
 @pytest.mark.asyncio
 async def test_plugin_adds_copyable_extension(ds):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.get("http://localhost/test/dogs")
-        assert 200 == response.status_code
-        assert ".copyable" in response.text
+    response = await ds.client.get("/test/dogs")
+    assert 200 == response.status_code
+    assert ".copyable" in response.text
 
 
 @pytest.mark.asyncio
 async def test_copyable_page_tsv(ds):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.get("http://localhost/test/dogs.copyable")
-        assert 200 == response.status_code
-        assert "<h1>Copy as tsv</h1>" in response.text
-        assert (
-            '<textarea class="copyable">id\tname\tage\tweight\tspecies\r\n'
-            "1\tCleo\t5\t51.2\t1\r\n"
-            "2\tPancakes\t4\t35.5\t1"
-            "\r\n</textarea>"
-        ) in response.text
+    response = await ds.client.get("/test/dogs.copyable")
+    assert 200 == response.status_code
+    assert "<h1>Copy as tsv</h1>" in response.text
+    assert (
+        '<textarea class="copyable">id\tname\tage\tweight\tspecies\r\n'
+        "1\tCleo\t5\t51.2\t1\r\n"
+        "2\tPancakes\t4\t35.5\t1"
+        "\r\n</textarea>"
+    ) in response.text
 
 
 @pytest.mark.asyncio
 async def test_raw_page_tsv(ds):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.get("http://localhost/test/dogs.copyable?_raw=1")
-        assert 200 == response.status_code
-        assert (
-            "id\tname\tage\tweight\tspecies\r\n"
-            "1\tCleo\t5\t51.2\t1\r\n"
-            "2\tPancakes\t4\t35.5\t1\r\n"
-        ) == response.text
+    response = await ds.client.get("/test/dogs.copyable?_raw=1")
+    assert 200 == response.status_code
+    assert (
+        "id\tname\tage\tweight\tspecies\r\n"
+        "1\tCleo\t5\t51.2\t1\r\n"
+        "2\tPancakes\t4\t35.5\t1\r\n"
+    ) == response.text
 
 
 @pytest.mark.asyncio
 async def test_copyable_page_github(ds):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.get(
-            "http://localhost/test/dogs.copyable?_table_format=github"
-        )
-        assert 200 == response.status_code
-        assert "<h1>Copy as github</h1>" in response.text
-        assert (
-            '<textarea class="copyable">'
-            "|   id | name     |   age |   weight |   species |\n"
-            "|------|----------|-------|----------|-----------|\n"
-            "|    1 | Cleo     |     5 |     51.2 |         1 |\n"
-            "|    2 | Pancakes |     4 |     35.5 |         1 |</textarea>"
-        ) in response.text
+    response = await ds.client.get("/test/dogs.copyable?_table_format=github")
+    assert 200 == response.status_code
+    assert "<h1>Copy as github</h1>" in response.text
+    assert (
+        '<textarea class="copyable">'
+        "|   id | name     |   age |   weight |   species |\n"
+        "|------|----------|-------|----------|-----------|\n"
+        "|    1 | Cleo     |     5 |     51.2 |         1 |\n"
+        "|    2 | Pancakes |     4 |     35.5 |         1 |</textarea>"
+    ) in response.text
 
 
 @pytest.mark.asyncio
 async def test_raw_page_github(ds):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.get(
-            "http://localhost/test/dogs.copyable?_table_format=github&_raw=1"
-        )
-        assert 200 == response.status_code
-        assert (
-            "|   id | name     |   age |   weight |   species |\n"
-            "|------|----------|-------|----------|-----------|\n"
-            "|    1 | Cleo     |     5 |     51.2 |         1 |\n"
-            "|    2 | Pancakes |     4 |     35.5 |         1 |"
-        ) == response.text
+    response = await ds.client.get("/test/dogs.copyable?_table_format=github&_raw=1")
+    assert 200 == response.status_code
+    assert (
+        "|   id | name     |   age |   weight |   species |\n"
+        "|------|----------|-------|----------|-----------|\n"
+        "|    1 | Cleo     |     5 |     51.2 |         1 |\n"
+        "|    2 | Pancakes |     4 |     35.5 |         1 |"
+    ) == response.text
 
 
 @pytest.mark.asyncio
 async def test_raw_page_tsv_with_labels(ds):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.get(
-            "http://localhost/test/dogs.copyable?_labels=on&_raw=1"
-        )
-        assert 200 == response.status_code
-        assert (
-            "id\tname\tage\tweight\tspecies\r\n"
-            "1\tCleo\t5\t51.2\tDog\r\n"
-            "2\tPancakes\t4\t35.5\tDog\r\n"
-        ) == response.text
+    response = await ds.client.get("/test/dogs.copyable?_labels=on&_raw=1")
+    assert 200 == response.status_code
+    assert (
+        "id\tname\tage\tweight\tspecies\r\n"
+        "1\tCleo\t5\t51.2\tDog\r\n"
+        "2\tPancakes\t4\t35.5\tDog\r\n"
+    ) == response.text
 
 
 @pytest.mark.asyncio
 async def test_copyable_page_github_with_labels(ds):
-    async with httpx.AsyncClient(app=ds.app()) as client:
-        response = await client.get(
-            "http://localhost/test/dogs.copyable?_table_format=github&_labels=on"
-        )
-        assert 200 == response.status_code
-        assert "<h1>Copy as github</h1>" in response.text
-        assert (
-            '<textarea class="copyable">'
-            "|   id | name     |   age |   weight | species   |\n"
-            "|------|----------|-------|----------|-----------|\n"
-            "|    1 | Cleo     |     5 |     51.2 | Dog       |\n"
-            "|    2 | Pancakes |     4 |     35.5 | Dog       |</textarea>"
-        ) in response.text
+    response = await ds.client.get(
+        "/test/dogs.copyable?_table_format=github&_labels=on"
+    )
+    assert 200 == response.status_code
+    assert "<h1>Copy as github</h1>" in response.text
+    assert (
+        '<textarea class="copyable">'
+        "|   id | name     |   age |   weight | species   |\n"
+        "|------|----------|-------|----------|-----------|\n"
+        "|    1 | Cleo     |     5 |     51.2 | Dog       |\n"
+        "|    2 | Pancakes |     4 |     35.5 | Dog       |</textarea>"
+    ) in response.text

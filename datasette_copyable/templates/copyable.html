@@ -33,13 +33,8 @@ button.copyable-copy-button {
 </style>
 {% endblock %}
 
-{% block nav %}
-    <p class="crumbs">
-        <a href="{{ base_url }}">home</a> /
-        <a href="{{ base_url }}{{ database }}">{{ database }}</a>{% if table %} /
-        <a href="{{ base_url }}{{ database }}/{{ table|quote_plus }}">{{ table }}</a>{% endif %}
-    </p>
-    {{ super() }}
+{% block crumbs %}
+{{ crumbs.nav(request=request, database=database, table=table) }}
 {% endblock %}
 
 {% block content %}
