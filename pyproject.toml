@@ -1,0 +1,37 @@
+[project]
+name = "datasette-copyable"
+version = "0.3.2"
+description = "Datasette plugin for outputting tables in formats suitable for copy and paste"
+readme = "README.md"
+requires-python = ">=3.7"
+license = "Apache-2.0"
+authors = [{ name = "Simon Willison" }]
+dependencies = [
+    "datasette>=0.63",
+    "tabulate",
+]
+
+[project.urls]
+Homepage = "https://github.com/simonw/datasette-copyable"
+Issues = "https://github.com/simonw/datasette-copyable/issues"
+CI = "https://github.com/simonw/datasette-copyable/actions"
+Changelog = "https://github.com/simonw/datasette-copyable/releases"
+
+[project.entry-points."datasette"]
+copyable = "datasette_copyable"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+    "sqlite-utils",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.0,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+source-include = ["tests/**"]
