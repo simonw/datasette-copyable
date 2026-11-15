@@ -3,7 +3,7 @@ name = "datasette-copyable"
 version = "0.3.2"
 description = "Datasette plugin for outputting tables in formats suitable for copy and paste"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.11"
 license = "Apache-2.0"
 authors = [{ name = "Simon Willison" }]
 dependencies = [
