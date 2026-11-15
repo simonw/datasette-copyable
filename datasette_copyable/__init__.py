@@ -38,7 +38,7 @@ async def render_copyable(
         copyable = tabulate.tabulate(rows, tablefmt=table_format, headers=columns)
 
     if raw:
-        return {"body": copyable, "content_type": "text/plain; charset=utf-8"}
+        return Response(copyable, content_type="text/plain; charset=utf-8")
 
     return Response(
         await datasette.render_template(
