@@ -1,6 +1,6 @@
 [project]
 name = "datasette-copyable"
-version = "0.3.2"
+version = "0.3.3"
 description = "Datasette plugin for outputting tables in formats suitable for copy and paste"
 readme = "README.md"
 requires-python = ">=3.11"
