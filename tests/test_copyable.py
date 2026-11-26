@@ -110,3 +110,26 @@ async def test_copyable_page_github_with_labels(ds):
         "|    1 | Cleo     |     5 |     51.2 | Dog       |\n"
         "|    2 | Pancakes |     4 |     35.5 | Dog       |</textarea>"
     ) in response.text
+
+
+@pytest.mark.asyncio
+async def test_format_and_raw_links_preserve_querystring(ds):
+    response = await ds.client.get("/test/dogs.copyable?_labels=on&_size=1")
+    assert 200 == response.status_code
+    assert (
+        '<a href="/test/dogs.copyable?_labels=on&amp;_size=1&amp;_table_format=github">github</a>'
+        in response.text
+    )
+    assert (
+        '<a href="/test/dogs.copyable?_labels=on&amp;_size=1&amp;_raw=1">Raw data</a>'
+        in response.text
+    )
+
+
+@pytest.mark.asyncio
+async def test_raw_page_for_sql_query(ds):
+    response = await ds.client.get(
+        "/test.copyable?sql=select+id,+name+from+dogs&_raw=1", follow_redirects=True
+    )
+    assert 200 == response.status_code
+    assert "id\tname\r\n1\tCleo\r\n2\tPancakes\r\n" == response.text

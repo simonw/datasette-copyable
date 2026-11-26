@@ -1,9 +1,18 @@
 from datasette import hookimpl
-from datasette.utils import path_with_replaced_args
 from datasette.utils.asgi import Response
 import csv
 import io
 import tabulate
+
+
+def _replace_args(datasette, request, args):
+    # datasette.urls.modify() replaced path_with_replaced_args() in Datasette 1.0a
+    modify = getattr(datasette.urls, "modify", None)
+    if modify is not None:
+        return modify(request, replace=args)
+    from datasette.utils import path_with_replaced_args
+
+    return path_with_replaced_args(request, args)
 
 
 async def render_copyable(
@@ -12,13 +21,17 @@ async def render_copyable(
     table_format = request.args.get("_table_format")
     raw = request.args.get("_raw")
 
-    # Look for {"value": "label":} dicts and turn them into just label
+    # Replace foreign key values with their labels. Datasette 1.0a exposes
+    # these as row.labels, earlier versions use {"value":, "label":} dicts
     new_rows = []
     for row in rows:
+        labels = getattr(row, "labels", None) or {}
         new_row = []
-        for cell in row:
+        for column, cell in zip(columns, row):
             if isinstance(cell, dict):
                 new_row.append(cell["label"])
+            elif column in labels:
+                new_row.append(labels[column])
             else:
                 new_row.append(cell)
         new_rows.append(new_row)
@@ -50,13 +63,13 @@ async def render_copyable(
                 "table_formats": [
                     {
                         "name": format_,
-                        "link": path_with_replaced_args(
-                            request, {"_table_format": format_}
+                        "link": _replace_args(
+                            datasette, request, {"_table_format": format_}
                         ),
                     }
                     for format_ in tabulate.tabulate_formats
                 ],
-                "raw_link": path_with_replaced_args(request, {"_raw": "1"}),
+                "raw_link": _replace_args(datasette, request, {"_raw": "1"}),
                 "copyable": copyable,
             },
             request=request,
