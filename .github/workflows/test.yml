@@ -11,6 +11,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+        datasette-version: ["stable", "alpha"]
     steps:
     - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
@@ -27,6 +28,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install . --group dev
+    - name: Install Datasette alpha
+      if: matrix.datasette-version == 'alpha'
+      run: |
+        pip install --upgrade --pre datasette
     - name: Run tests
       run: |
         pytest
